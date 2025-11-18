@@ -1,0 +1,25 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER= ${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD= ${N8N_PASSWORD}
+      - GENERIC_TIMEZONE=Europe/Paris
+      - N8N_LOG_LEVEL=info
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./local-files:/home/node/local-files
+    networks:
+      - n8n_network
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n_network:
