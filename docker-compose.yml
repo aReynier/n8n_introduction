@@ -1,25 +1,46 @@
+# docker-compose.yml
 services:
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: n8n
-    restart: unless-stopped
-    env_file: .env
+  db:
+    image: postgres:15
+    container_name: postgresql
+    restart: always
+    env_file:
+      - .env
     ports:
-      - "5678:5678"
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER= ${N8N_USER}
-      - N8N_BASIC_AUTH_PASSWORD= ${N8N_PASSWORD}
-      - GENERIC_TIMEZONE=Europe/Paris
-      - N8N_LOG_LEVEL=info
+      - "5432:5432"
     volumes:
-      - n8n_data:/home/node/.n8n
-      - ./local-files:/home/node/local-files
+      - ./volumes/postgres_data:/var/lib/postgresql/data
     networks:
       - n8n_network
 
-volumes:
-  n8n_data:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./volumes/n8n_data:/home/node/.n8n
+    networks:
+      - n8n_network
+    depends_on:
+      - db
+      
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_GPU_LAYERS=20
+      - OLLAMA_NUM_PARALLEL=4
+    volumes:
+      - ./volumes/ollama_data:/root/.ollama
+    networks:
+      - n8n_network
 
 networks:
   n8n_network:
